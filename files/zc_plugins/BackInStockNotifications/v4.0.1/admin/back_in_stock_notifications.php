@@ -1,5 +1,5 @@
 <?php
-/** BISN 4.0.0 admin. GPL-3.0-or-later. */
+/** BISN 4.0.1 admin. GPL-3.0-or-later. */
 require 'includes/application_top.php';
 require_once dirname(__DIR__) . '/shared/bootstrap.php';
 $bisnProductId = max(0, (int)ProWebsBisn::scalar($_GET, 'product_id'));

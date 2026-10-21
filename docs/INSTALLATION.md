@@ -4,15 +4,22 @@
 
 Back up the store files and database. Use a development copy to confirm appearance, customer ownership, language selection, sending, and cancellation. This package supports exactly Zen Cart 2.1.0 and 2.2.2.
 
-The only install tree is files/zc_plugins/BackInStockNotifications/v4.0.0. Upload files/ into the store root. Do not rename admin folders inside this package; Plugin Manager resolves the active admin directory.
+The only install tree is files/zc_plugins/BackInStockNotifications/v4.0.1. Upload files/ into the store root. Do not rename admin folders inside this package; Plugin Manager resolves the active admin directory.
 
-## Product page and account template integration
+## Add the product and account links
 
-Version 4 uses a link to a dedicated subscription form. It does not use the old embedded product_info form or the legacy merge templates.
+Follow the [Bootstrap template instructions in the README](../README.md#product_info-integration-for-bootstrap). They provide the exact file paths, paste locations, and complete PHP blocks.
 
-On templates with NOTIFY_PAGE_BODY_BEGIN, the product and account links display automatically. For custom or Bootstrap templates that do not display the link, follow the complete [product_info and account integration examples in the README](../README.md#product_info-integration). Those examples show the exact active-template path and copyable PHP.
+The plugin does not insert these links itself. No template event or observer setup is needed.
 
-Do not add the fallback if the automatic link already displays. Remove old BISN template includes during migration.
+## Upgrading from 4.0.0 to 4.0.1
+
+1. Upload files/ to your store root.
+2. Open Admin > Modules > Plugin Manager and upgrade Back in stock notifications to 4.0.1.
+3. Add the two template blocks from the README if you have not already added them. Existing version 4 template blocks still work; keep them and do not add duplicate copies.
+4. Check an out-of-stock product and the signed-in account page.
+
+Version 4.0.1 removes the link-insertion observer. Only the template blocks display the links. Subscription data and settings are preserved. The old v4.0.0 directory can be removed after Plugin Manager confirms 4.0.1 is active. Do not run both versions.
 
 ## Migrating the loose-file release
 

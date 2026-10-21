@@ -2,7 +2,7 @@
 from pathlib import Path
 import json
 root = Path(__file__).resolve().parents[1]
-package = root / "files/zc_plugins/BackInStockNotifications/v4.0.0"
+package = root / "files/zc_plugins/BackInStockNotifications/v4.0.1"
 assert list((root / "files").glob("*")) == [root / "files/zc_plugins"]
 assert list((package.parent).iterdir()) == [package]
 assert list((root / "files").rglob("manifest.php")) == [package / "manifest.php"]
@@ -10,11 +10,10 @@ for required in [
     "Installer/ScriptedInstaller.php", "filenames.php", "shared/Bisn.php",
     "admin/includes/functions/extra_functions/bisn_menu.php",
     "admin/includes/languages/english/extra_definitions/lang.bisn.php",
-    "catalog/includes/classes/observers/auto.bisn.php",
 ]:
     assert (package / required).is_file(), required
 manifest = (package / "manifest.php").read_text()
-assert "'pluginVersion' => 'v4.0.0'" in manifest
+assert "'pluginVersion' => 'v4.0.1'" in manifest
 assert "'zcVersions' => ['v210', 'v222']" in manifest
 assert "'pluginId' => 0" in manifest
 for page in [
@@ -24,6 +23,7 @@ for page in [
 ]:
     assert (package / f"catalog/includes/modules/pages/{page}/header_php.php").is_file()
     assert (package / f"catalog/includes/templates/default/templates/tpl_{page}_default.php").is_file()
+assert not list((root / "files").rglob("auto.bisn.php"))
 for path in (root / "files").rglob("*"):
     if path.is_file():
         assert path.suffix == ".php", path
@@ -36,3 +36,7 @@ for name in ["README.md", "CHANGELOG.md", "SECURITY.md", "docs/INSTALLATION.md",
     assert data.isascii(), name
 assert json.loads((root / "docs/legacy-files.json").read_text())
 print("Package paths, single manifest/version, compatibility, documentation, and legacy inventory passed")
+
+for name in ['product_info.php', 'account.php']:
+    example = (root / 'docs/examples' / name).read_text()
+    assert example.strip() in (root / 'README.md').read_text(), name

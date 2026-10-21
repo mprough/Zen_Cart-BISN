@@ -12,7 +12,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-      - run: find files tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: find files tests docs/examples -name '*.php' -print0 | xargs -0 -n1 php -l
       - run: git diff --check
       - run: python3 tests/check-package.py
   integration:

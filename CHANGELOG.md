@@ -1,5 +1,12 @@
 # Change history
 
+## 4.0.1
+
+- Removes the observer that inserted product and account links.
+- Uses explicit template code as the only method of displaying those links.
+- Rewrites Bootstrap integration instructions with exact files and paste locations.
+- Preserves settings, subscriptions, and existing version 4 template code.
+
 ## 4.0.0
 
 - Supports Zen Cart 2.1.0 and 2.2.2; excludes 2.0.0 and 2.0.1.

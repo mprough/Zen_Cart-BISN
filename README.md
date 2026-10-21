@@ -1,6 +1,6 @@
 # Back in stock notifications for Zen Cart
 
-Version 4.0.0, maintained by Melanie Prough, PRO-Webs, Inc., [PRO-Webs.net](https://pro-webs.net/).
+Version 4.0.1, maintained by Melanie Prough, PRO-Webs, Inc., [PRO-Webs.net](https://pro-webs.net/).
 
 Customers can request an email when an unavailable product returns to stock. Store staff preview requests and send small batches from **Catalog > Back in stock notifications**.
 
@@ -16,7 +16,7 @@ Zen Cart 2.0.0 and 2.0.1 are not supported. The installer enforces the two suppo
 ## What version 4 changes
 
 - Installs through Plugin Manager with one encapsulated version directory.
-- Adds product and account links through an existing Zen Cart template event. No core or template overwrites or template merges.
+- Provides product and account link code for your template. The plugin does not insert these links itself.
 - Replaces the CEON placeholder engine with ordinary PHP forms and Zen Cart mail.
 - Requires POST and a session form token for all subscription changes and admin actions.
 - Fixes the legacy account query that could expose or remove another customer's requests.
@@ -33,32 +33,28 @@ Back up your files and database and test on a development copy first.
 
 1. For an existing BISN installation, follow the legacy removal instructions before uploading.
 2. Upload the contents of **files/** to the store root.
-3. Open **Admin > Modules > Plugin Manager**, install and enable **Back in stock notifications 4.0.0**.
+3. Open **Admin > Modules > Plugin Manager**, install and enable **Back in stock notifications 4.0.1**.
 4. Review **Configuration > Back in stock notifications**.
-5. Check the product page. If your custom template does not show the link, follow Product_info integration below.
+5. Add the product and account links using the Bootstrap instructions below. If you already added the version 4 link code, keep it.
 6. Test a product request, an account cancellation, a guest unsubscribe link, and a test email before sending a real batch.
 
-## Product_info integration
+## Product_info integration for Bootstrap
 
-### Standard automatic display
+This step adds a **Notify me when this product is back in stock** link below the product description. Clicking it opens the signup form. The link is shown only for active products with quantity zero or below.
 
-When your active template fires NOTIFY_PAGE_BODY_BEGIN, version 4 automatically displays a notification link above the product content for active products whose parent quantity is zero or below. No product_info edit is needed in that case.
+1. Open **includes/templates/bootstrap/templates/tpl_product_info_display.php**.
+2. Find this line:
 
-Clicking the link opens the dedicated subscription page. Customers must submit that form, including when they are logged in. The old embedded form, legacy BISN variables, and plugin_bisn_product_info_subscribe_form.php include are no longer used.
+```html
+<!--eof Product description -->
+```
 
-### Custom or Bootstrap template without the automatic link
-
-If the notification link is missing, add the following to your active template's product display file:
-
-**includes/templates/YOUR_TEMPLATE/templates/tpl_product_info_display.php**
-
-Replace YOUR_TEMPLATE with the active template folder, for example bootstrap. Edit the active override, not the plugin's page template. If your template has no override, copy its current inherited product display file into the active template's templates directory before editing.
-
-Place this block after the product description or beside the stock information, outside the add-to-cart form. It includes its own PHP opening and closing tags, so paste it in the HTML portion of the template.
+3. Paste the complete block below immediately after that line.
+4. Save and upload the edited file.
+5. Open an active product with quantity zero. The notification link should appear below its description. Click it and submit a request.
 
 ```php
 <?php
-// BISN 4: use only when this template does not show the automatic BISN link.
 if (class_exists('ProWebsBisn', false) && ProWebsBisn::enabled()) {
     $bisnProductId = (int)ProWebsBisn::scalar($_GET, 'products_id');
     $bisnProduct = ProWebsBisn::product(
@@ -86,11 +82,17 @@ if (class_exists('ProWebsBisn', false) && ProWebsBisn::enabled()) {
 ?>
 ```
 
-The guard allows this template code to remain when BISN is disabled or uninstalled. The product lookup verifies active status and stock before showing the link.
+If your Bootstrap template uses a different folder name, use that folder instead of bootstrap. Other templates can use this same block in their own tpl_product_info_display.php, after the product description.
 
-**Use either the automatic link or this fallback.** Adding the fallback to a template that already displays the automatic link will display two links. This snippet is a missing-event fallback, not a switch for moving an existing automatic link.
+## Account page link for Bootstrap
 
-For the account-management link, the same standard event displays it on the account page. A custom account template without that event can use:
+This step lets signed-in customers open their list of notification requests.
+
+1. Open **includes/templates/bootstrap/templates/tpl_account_default.php**.
+2. Find the page heading and its closing **</h1>** tag.
+3. Paste the complete block below immediately after that closing tag.
+4. Save and upload the edited file.
+5. Sign in and open My Account. Click **Manage back in stock notifications**.
 
 ```php
 <?php
@@ -112,7 +114,7 @@ if (class_exists('ProWebsBisn', false)
 ?>
 ```
 
-Do not restore the old CEON template includes or copy the obsolete BISN TO MERGE files into a version 4 installation.
+The plugin does not insert product or account links itself. These two template blocks determine where the links appear. Existing version 4 template blocks can remain in place when upgrading to 4.0.1; do not paste a second copy.
 
 ## Scope and limits
 
@@ -124,7 +126,7 @@ Requests retain the language used when subscribing. Select that language in the 
 
 Version 4 uses a separate subscription form page instead of embedding a second form inside a product template. It does not send signup acknowledgments or admin copy emails. The old copy-address setting is retained for migration reference. Test delivery is an explicit admin action.
 
-Templates must fire the standard **NOTIFY_PAGE_BODY_BEGIN** event. The event exists in the supported Zen Cart responsive_classic templates. Verify custom and Bootstrap templates on your development store.
+Product and account links are placed by the template code shown above. No template event is required.
 
 ## License, credits, and support
 

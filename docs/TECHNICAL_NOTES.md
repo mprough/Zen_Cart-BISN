@@ -2,7 +2,7 @@
 
 ## Runtime boundaries
 
-The package uses an encapsulated observer and page handlers supported by both targeted cores. The observer uses NOTIFY_PAGE_BODY_BEGIN and queries one product only on supported product information pages. It does no catalog-wide scan and sends no email. The account link requires no subscription count query.
+The package uses encapsulated page handlers and explicit product/account template blocks. It has no observer that inserts links. The product template block queries only the current product to confirm its active status and quantity. The account block displays a management link for signed-in customers without a subscription count query. Neither block sends email.
 
 The admin page lists 50 records plus one sentinel for pagination. Preview selects at most 50 joined eligible subscription rows. Sending uses the same bounded query, with product type and customer details included, avoiding the inherited per-product query loop. Account management reads 50 records plus one sentinel and every deletion includes the current customer ID.
 
@@ -45,4 +45,4 @@ Environment:
 - BISN_DB_USER: default root.
 - BISN_DB_PASSWORD: default empty.
 
-The suite uses the actual core database schema, queryFactory, scripted installer base class, menu registration functions, observer/event base, and actual account/unsubscribe handlers. Mail delivery, admin activity logging, and the module-cache refresh are isolated test boundaries. GitHub Actions covers PHP 8.0 through 8.5 and valid Zen Cart/PHP pairs. These automated checks do not replace a live template and mail acceptance test.
+The suite uses the actual core database schema, queryFactory, scripted installer base class, menu registration functions, product/account template examples, and actual account/unsubscribe handlers. Mail delivery, admin activity logging, and the module-cache refresh are isolated test boundaries. GitHub Actions covers PHP 8.0 through 8.5 and valid Zen Cart/PHP pairs. These automated checks do not replace a live template and mail acceptance test.

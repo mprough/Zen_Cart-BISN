@@ -51,7 +51,7 @@ foreach (['configuration', 'configuration_group', 'admin_pages', 'products', 'pr
     if (!preg_match('/CREATE TABLE ' . $table . ' \(.*?;/s', $sql, $match)) { throw new RuntimeException('Missing core schema ' . $table); }
     $db->Execute(str_replace('CREATE TABLE ' . $table . ' ', 'CREATE TABLE ' . DB_PREFIX . $table . ' ', $match[0]));
 }
-$plugin = dirname(__DIR__) . '/files/zc_plugins/BackInStockNotifications/v4.0.0';
+$plugin = dirname(__DIR__) . '/files/zc_plugins/BackInStockNotifications/v4.0.1';
 require $plugin . '/filenames.php';
 require $plugin . '/Installer/ScriptedInstaller.php';
 require $plugin . '/shared/bootstrap.php';
@@ -85,7 +85,7 @@ function zen_href_link($page, $params = '', $connection = '') { return zen_catal
 
 $errors = new Zencart\PluginSupport\PluginErrorContainer();
 $installer = new ScriptedInstaller($db, $errors);
-$installer->setVersionDetails(['pluginKey' => 'BackInStockNotifications', 'pluginDir' => $plugin, 'version' => 'v4.0.0', 'oldVersion' => null]);
+$installer->setVersionDetails(['pluginKey' => 'BackInStockNotifications', 'pluginDir' => $plugin, 'version' => 'v4.0.1', 'oldVersion' => null]);
 check($installer->doInstall() === true, 'Clean install: ' . implode('; ', $errors->getLogErrors()));
 check(!$errors->hasErrors(), 'Installer error container is empty');
 check((int)value('SELECT COUNT(*) FROM ' . TABLE_ADMIN_PAGES) === 2, 'Both menus installed');
@@ -186,17 +186,26 @@ require $plugin . '/admin/includes/functions/extra_functions/bisn_menu.php';
 check(zen_page_key_exists('ceon_bisn_cg'), 'Missing configuration menu repaired');
 check(value("SELECT display_on_menu FROM " . TABLE_ADMIN_PAGES . " WHERE page_key='ceon_bisn'") === 'N', 'Existing menu permissions preserved');
 
-// Compile the observer against the real base class and exercise its actual event.
-require $plugin . '/catalog/includes/classes/observers/auto.bisn.php';
-$observer = new zcObserverBisn();
-$current_page_base = 'product_info';
+// Render the documented template blocks. No observer or template event is involved.
+check(!is_file($plugin . '/catalog/includes/classes/observers/auto.bisn.php'), 'No automatic link observer is shipped');
 $_GET = ['products_id' => 12];
 $db->Execute("UPDATE " . TABLE_PRODUCTS . " SET products_quantity=0 WHERE products_id=12");
 ob_start();
-$notifier = new base();
-$notifier->notify('NOTIFY_PAGE_BODY_BEGIN', 'product_info');
+require dirname(__DIR__) . '/docs/examples/product_info.php';
 $output = ob_get_clean();
-check(strpos($output, 'back_in_stock_notification_subscribe') !== false, 'Product observer renders supported core event');
+check(strpos($output, 'back_in_stock_notification_subscribe') !== false, 'Product template displays request link for zero stock');
+$db->Execute("UPDATE " . TABLE_PRODUCTS . " SET products_quantity=5 WHERE products_id=12");
+ob_start();
+require dirname(__DIR__) . '/docs/examples/product_info.php';
+check(trim(ob_get_clean()) === '', 'Product template hides request link for stocked product');
+$_SESSION['customer_id'] = 1;
+ob_start();
+require dirname(__DIR__) . '/docs/examples/account.php';
+check(strpos(ob_get_clean(), 'account_back_in_stock_notifications') !== false, 'Account template displays management link');
+unset($_SESSION['customer_id']);
+ob_start();
+require dirname(__DIR__) . '/docs/examples/account.php';
+check(trim(ob_get_clean()) === '', 'Account template hides management link for guests');
 
 // Uninstall retains requests; reinstall restores settings and reconnects records.
 $db->Execute("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title,configuration_key,configuration_value,configuration_description,configuration_group_id,date_added) VALUES ('Unrelated','OTHER_PLUGIN','keep','Unrelated setting',1,NOW())");
