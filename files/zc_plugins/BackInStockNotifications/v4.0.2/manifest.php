@@ -1,7 +1,7 @@
 <?php
 if (!defined('IS_ADMIN_FLAG')) { die('Illegal Access'); }
 return [
-    'pluginVersion' => 'v4.0.1',
+    'pluginVersion' => 'v4.0.2',
     'pluginName' => 'Back in stock notifications',
     'pluginDescription' => 'Product availability subscriptions with bounded notification batches.',
     'pluginAuthor' => 'Melanie Prough, PRO-Webs, Inc.',

@@ -1,6 +1,6 @@
 # Back in stock notifications for Zen Cart
 
-Version 4.0.1, maintained by Melanie Prough, PRO-Webs, Inc., [PRO-Webs.net](https://pro-webs.net/).
+Version 4.0.2, maintained by Melanie Prough, PRO-Webs, Inc., [PRO-Webs.net](https://pro-webs.net/).
 
 Customers can request an email when an unavailable product returns to stock. Store staff preview requests and send small batches from **Catalog > Back in stock notifications**.
 
@@ -33,7 +33,7 @@ Back up your files and database and test on a development copy first.
 
 1. For an existing BISN installation, follow the legacy removal instructions before uploading.
 2. Upload the contents of **files/** to the store root.
-3. Open **Admin > Modules > Plugin Manager**, install and enable **Back in stock notifications 4.0.1**.
+3. Open **Admin > Modules > Plugin Manager**, install and enable **Back in stock notifications 4.0.2**.
 4. Review **Configuration > Back in stock notifications**.
 5. Add the product and account links using the Bootstrap instructions below. If you already added the version 4 link code, keep it.
 6. Test a product request, an account cancellation, a guest unsubscribe link, and a test email before sending a real batch.
@@ -114,7 +114,7 @@ if (class_exists('ProWebsBisn', false)
 ?>
 ```
 
-The plugin does not insert product or account links itself. These two template blocks determine where the links appear. Existing version 4 template blocks can remain in place when upgrading to 4.0.1; do not paste a second copy.
+The plugin does not insert product or account links itself. These two template blocks determine where the links appear. Existing version 4 template blocks can remain in place when upgrading to 4.0.2; do not paste a second copy.
 
 ## Scope and limits
 

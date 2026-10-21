@@ -32,7 +32,7 @@ class ScriptedInstaller extends ScriptedInstallBase
         // The manifest is advisory; enforce the supported versions on both cores.
         $version = PROJECT_VERSION_MAJOR . '.' . PROJECT_VERSION_MINOR;
         if (!in_array($version, ['2.1.0', '2.2.2'], true)) {
-            throw new RuntimeException('BISN 4.0.1 requires Zen Cart 2.1.0 or 2.2.2.');
+            throw new RuntimeException('BISN 4.0.2 requires Zen Cart 2.1.0 or 2.2.2.');
         }
         foreach ([
             DIR_FS_CATALOG . 'includes/classes/observers/auto.back_in_stock_notificationsProductInfo.php',
@@ -103,7 +103,7 @@ class ScriptedInstaller extends ScriptedInstallBase
         // Rename the historical key only when the replacement does not already exist.
         $old = $db->Execute("SELECT configuration_value FROM " . TABLE_CONFIGURATION . " WHERE configuration_key='BACK_IN_STOCK_NOTIFICATION_ENABLED' LIMIT 1");
         $defaults = [
-            'BISN_VERSION' => ['Installed version', '4.0.1', 'Installed version. Managed by Plugin Manager.'],
+            'BISN_VERSION' => ['Installed version', '4.0.2', 'Installed version. Managed by Plugin Manager.'],
             'BACK_IN_STOCK_NOTIFICATIONS_ENABLED' => ['Enable notifications', $old->EOF ? '1' : $old->fields['configuration_value'], '1 enables subscriptions and sending; 0 pauses both. Account cancellations remain available.'],
             'BACK_IN_STOCK_REQUIRES_LOGIN' => ['Require login', '0', '1 requires a customer account; 0 also allows guests.'],
             'SEND_EXTRA_BACK_IN_STOCK_NOTIFICATION_SUBSCRIPTION_EMAILS_TO' => ['Legacy subscription copy addresses', '', 'Preserved for migration. Version 4 does not send signup emails or admin copies.'],
@@ -128,7 +128,7 @@ class ScriptedInstaller extends ScriptedInstallBase
             $sort++;
         }
         $this->runSql("DELETE FROM " . TABLE_CONFIGURATION . " WHERE configuration_key='BACK_IN_STOCK_NOTIFICATION_ENABLED'");
-        $this->runSql("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value='4.0.1', set_function='zen_cfg_read_only(', use_function=NULL WHERE configuration_key='BISN_VERSION'");
+        $this->runSql("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value='4.0.2', set_function='zen_cfg_read_only(', use_function=NULL WHERE configuration_key='BISN_VERSION'");
         $this->runSql("UPDATE " . TABLE_CONFIGURATION . " SET set_function='zen_cfg_read_only(', use_function=NULL WHERE configuration_key='BISN_SECRET'");
         foreach ([
             ['ceon_bisn', 'BOX_CEON_BACK_IN_STOCK_NOTIFICATIONS', 'FILENAME_CEON_BACK_IN_STOCK_NOTIFICATIONS', '', 'catalog'],

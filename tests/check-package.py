@@ -2,7 +2,7 @@
 from pathlib import Path
 import json
 root = Path(__file__).resolve().parents[1]
-package = root / "files/zc_plugins/BackInStockNotifications/v4.0.1"
+package = root / "files/zc_plugins/BackInStockNotifications/v4.0.2"
 assert list((root / "files").glob("*")) == [root / "files/zc_plugins"]
 assert list((package.parent).iterdir()) == [package]
 assert list((root / "files").rglob("manifest.php")) == [package / "manifest.php"]
@@ -13,7 +13,7 @@ for required in [
 ]:
     assert (package / required).is_file(), required
 manifest = (package / "manifest.php").read_text()
-assert "'pluginVersion' => 'v4.0.1'" in manifest
+assert "'pluginVersion' => 'v4.0.2'" in manifest
 assert "'zcVersions' => ['v210', 'v222']" in manifest
 assert "'pluginId' => 0" in manifest
 for page in [

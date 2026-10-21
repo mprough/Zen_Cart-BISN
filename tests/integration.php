@@ -37,6 +37,7 @@ require $core . '/admin/includes/functions/admin_access.php';
 require $core . '/includes/classes/PluginSupport/ScriptedInstallHelpers.php';
 require $core . '/includes/classes/PluginSupport/PluginErrorContainer.php';
 require $core . '/includes/classes/PluginSupport/ScriptedInstaller.php';
+require $core . '/includes/classes/PluginSupport/ScriptedInstallerFactory.php';
 if (is_file($core . '/includes/classes/DbRepositories/LayoutBoxRepository.php')) { require $core . '/includes/classes/DbRepositories/LayoutBoxRepository.php'; }
 $host = getenv('BISN_DB_HOST') ?: '127.0.0.1';
 $user = getenv('BISN_DB_USER') ?: 'root';
@@ -51,8 +52,14 @@ foreach (['configuration', 'configuration_group', 'admin_pages', 'products', 'pr
     if (!preg_match('/CREATE TABLE ' . $table . ' \(.*?;/s', $sql, $match)) { throw new RuntimeException('Missing core schema ' . $table); }
     $db->Execute(str_replace('CREATE TABLE ' . $table . ' ', 'CREATE TABLE ' . DB_PREFIX . $table . ' ', $match[0]));
 }
-$plugin = dirname(__DIR__) . '/files/zc_plugins/BackInStockNotifications/v4.0.1';
+$plugin = dirname(__DIR__) . '/files/zc_plugins/BackInStockNotifications/v4.0.2';
 require $plugin . '/filenames.php';
+// Simulate an active previous version before loading the target installer.
+$previousRuntime = sys_get_temp_dir() . '/bisn-previous-' . bin2hex(random_bytes(8));
+mkdir($previousRuntime);
+copy($plugin . '/shared/Bisn.php', $previousRuntime . '/Bisn.php');
+file_put_contents($previousRuntime . '/bootstrap.php', "<?php\nrequire_once __DIR__ . '/Bisn.php';\n");
+require $previousRuntime . '/bootstrap.php';
 require $plugin . '/Installer/ScriptedInstaller.php';
 require $plugin . '/shared/bootstrap.php';
 foreach (require $plugin . '/admin/includes/languages/english/extra_definitions/lang.bisn.php' as $key => $value) { define($key, $value); }
@@ -84,8 +91,9 @@ function zen_catalog_href_link($page, $params = '', $connection = '') { return '
 function zen_href_link($page, $params = '', $connection = '') { return zen_catalog_href_link($page, $params, $connection); }
 
 $errors = new Zencart\PluginSupport\PluginErrorContainer();
-$installer = new ScriptedInstaller($db, $errors);
-$installer->setVersionDetails(['pluginKey' => 'BackInStockNotifications', 'pluginDir' => $plugin, 'version' => 'v4.0.1', 'oldVersion' => null]);
+$installerFactory = new Zencart\PluginSupport\ScriptedInstallerFactory($db, $errors);
+$installer = $installerFactory->make($plugin);
+$installer->setVersionDetails(['pluginKey' => 'BackInStockNotifications', 'pluginDir' => $plugin, 'version' => 'v4.0.2', 'oldVersion' => null]);
 check($installer->doInstall() === true, 'Clean install: ' . implode('; ', $errors->getLogErrors()));
 check(!$errors->hasErrors(), 'Installer error container is empty');
 check((int)value('SELECT COUNT(*) FROM ' . TABLE_ADMIN_PAGES) === 2, 'Both menus installed');
@@ -281,4 +289,7 @@ check((int)value("SELECT COUNT(*) FROM $sub WHERE id=$legacyId") === 0, 'Actual 
 $_POST = ['id' => 1, 'code' => ['array'], 'bisn_csrf' => $_SESSION['bisn_csrf']];
 require $plugin . '/catalog/includes/modules/pages/back_in_stock_notification_unsubscribe/header_php.php';
 check($bisnMessage === BISN_UNKNOWN, 'Malformed unsubscribe code rejected without warnings');
+unlink($previousRuntime . '/bootstrap.php');
+unlink($previousRuntime . '/Bisn.php');
+rmdir($previousRuntime);
 echo "Passed $assertions integration assertions on Zen Cart " . PROJECT_VERSION_MAJOR . '.' . PROJECT_VERSION_MINOR . " / PHP " . PHP_VERSION . "\n";

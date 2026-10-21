@@ -4,7 +4,7 @@
 
 Back up the store files and database. Use a development copy to confirm appearance, customer ownership, language selection, sending, and cancellation. This package supports exactly Zen Cart 2.1.0 and 2.2.2.
 
-The only install tree is files/zc_plugins/BackInStockNotifications/v4.0.1. Upload files/ into the store root. Do not rename admin folders inside this package; Plugin Manager resolves the active admin directory.
+The only install tree is files/zc_plugins/BackInStockNotifications/v4.0.2. Upload files/ into the store root. Do not rename admin folders inside this package; Plugin Manager resolves the active admin directory.
 
 ## Add the product and account links
 
@@ -12,14 +12,18 @@ Follow the [Bootstrap template instructions in the README](../README.md#product_
 
 The plugin does not insert these links itself. No template event or observer setup is needed.
 
-## Upgrading from 4.0.0 to 4.0.1
+## Upgrading from 4.0.0 or 4.0.1
 
 1. Upload files/ to your store root.
-2. Open Admin > Modules > Plugin Manager and upgrade Back in stock notifications to 4.0.1.
-3. Add the two template blocks from the README if you have not already added them. Existing version 4 template blocks still work; keep them and do not add duplicate copies.
-4. Check an out-of-stock product and the signed-in account page.
+2. Open Admin > Modules > Plugin Manager and upgrade Back in stock notifications to 4.0.2.
+3. Keep any version 4 product/account template blocks already installed. Do not add another copy.
+4. If you have not added the links, follow the Bootstrap instructions in the README.
 
-Version 4.0.1 removes the link-insertion observer. Only the template blocks display the links. Subscription data and settings are preserved. The old v4.0.0 directory can be removed after Plugin Manager confirms 4.0.1 is active. Do not run both versions.
+Version 4.0.2 fixes a fatal error when the active version's shared class was already loaded during upgrade. It retains the removal of automatic link insertion introduced in 4.0.1. Settings and subscriptions are preserved.
+
+If an upgrade to 4.0.1 failed, upload 4.0.2 and select it as the upgrade target. Do not uninstall or delete the subscription table to recover.
+
+After Plugin Manager confirms 4.0.2 is active, the old version directory can be removed.
 
 ## Migrating the loose-file release
 

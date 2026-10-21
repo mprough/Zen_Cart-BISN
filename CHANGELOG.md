@@ -1,5 +1,11 @@
 # Change history
 
+## 4.0.2
+
+- Fixes the Plugin Manager upgrade fatal error caused by loading ProWebsBisn from both the active and target version directories.
+- Adds regression coverage that loads the old runtime before running the target installer's upgrade through the core installer factory.
+- Preserves subscriptions, settings, and existing version 4 template integration.
+
 ## 4.0.1
 
 - Removes the observer that inserted product and account links.
