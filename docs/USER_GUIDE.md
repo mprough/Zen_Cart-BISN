@@ -2,7 +2,7 @@
 
 ## Customer requests
 
-An active product with quantity zero or below displays a link above its main content. The link opens a dedicated form. Guests enter a name, email, and matching email confirmation. Signed-in customers see their account details prefilled and still submit the form.
+On templates with the standard display event, an active product with quantity zero or below displays a link above its main content. Custom templates without that event need the fallback integration shown in the README. The link opens a dedicated form. Guests enter a name, email, and matching email confirmation. Signed-in customers see their account details prefilled and still submit the form.
 
 Requests are saved after successful validation. No signup email is sent. Email is sent only when staff explicitly processes a restocked product.
 

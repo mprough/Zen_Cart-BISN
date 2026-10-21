@@ -6,6 +6,14 @@ Back up the store files and database. Use a development copy to confirm appearan
 
 The only install tree is files/zc_plugins/BackInStockNotifications/v4.0.0. Upload files/ into the store root. Do not rename admin folders inside this package; Plugin Manager resolves the active admin directory.
 
+## Product page and account template integration
+
+Version 4 uses a link to a dedicated subscription form. It does not use the old embedded product_info form or the legacy merge templates.
+
+On templates with NOTIFY_PAGE_BODY_BEGIN, the product and account links display automatically. For custom or Bootstrap templates that do not display the link, follow the complete [product_info and account integration examples in the README](../README.md#product_info-integration). Those examples show the exact active-template path and copyable PHP.
+
+Do not add the fallback if the automatic link already displays. Remove old BISN template includes during migration.
+
 ## Migrating the loose-file release
 
 Do not uninstall the old database or delete subscriptions. Version 4 reuses the prefixed back_in_stock_notification_subscriptions table.

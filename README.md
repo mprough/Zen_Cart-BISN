@@ -35,7 +35,84 @@ Back up your files and database and test on a development copy first.
 2. Upload the contents of **files/** to the store root.
 3. Open **Admin > Modules > Plugin Manager**, install and enable **Back in stock notifications 4.0.0**.
 4. Review **Configuration > Back in stock notifications**.
-5. Test a product request, an account cancellation, a guest unsubscribe link, and a test email before sending a real batch.
+5. Check the product page. If your custom template does not show the link, follow Product_info integration below.
+6. Test a product request, an account cancellation, a guest unsubscribe link, and a test email before sending a real batch.
+
+## Product_info integration
+
+### Standard automatic display
+
+When your active template fires NOTIFY_PAGE_BODY_BEGIN, version 4 automatically displays a notification link above the product content for active products whose parent quantity is zero or below. No product_info edit is needed in that case.
+
+Clicking the link opens the dedicated subscription page. Customers must submit that form, including when they are logged in. The old embedded form, legacy BISN variables, and plugin_bisn_product_info_subscribe_form.php include are no longer used.
+
+### Custom or Bootstrap template without the automatic link
+
+If the notification link is missing, add the following to your active template's product display file:
+
+**includes/templates/YOUR_TEMPLATE/templates/tpl_product_info_display.php**
+
+Replace YOUR_TEMPLATE with the active template folder, for example bootstrap. Edit the active override, not the plugin's page template. If your template has no override, copy its current inherited product display file into the active template's templates directory before editing.
+
+Place this block after the product description or beside the stock information, outside the add-to-cart form. It includes its own PHP opening and closing tags, so paste it in the HTML portion of the template.
+
+```php
+<?php
+// BISN 4: use only when this template does not show the automatic BISN link.
+if (class_exists('ProWebsBisn', false) && ProWebsBisn::enabled()) {
+    $bisnProductId = (int)ProWebsBisn::scalar($_GET, 'products_id');
+    $bisnProduct = ProWebsBisn::product(
+        $bisnProductId,
+        (int)($_SESSION['languages_id'] ?? 1)
+    );
+    if ($bisnProduct && (float)$bisnProduct['products_quantity'] <= 0) {
+        $bisnUrl = zen_href_link(
+            FILENAME_BACK_IN_STOCK_NOTIFICATION_SUBSCRIBE,
+            'products_id=' . $bisnProductId,
+            'SSL'
+        );
+        ?>
+        <div class="bisn-notice">
+            <p>
+                <a class="btn btn-info" href="<?= ProWebsBisn::h($bisnUrl) ?>">
+                    <?= ProWebsBisn::h(BISN_REQUEST) ?>
+                </a>
+            </p>
+        </div>
+        <?php
+    }
+    unset($bisnProductId, $bisnProduct, $bisnUrl);
+}
+?>
+```
+
+The guard allows this template code to remain when BISN is disabled or uninstalled. The product lookup verifies active status and stock before showing the link.
+
+**Use either the automatic link or this fallback.** Adding the fallback to a template that already displays the automatic link will display two links. This snippet is a missing-event fallback, not a switch for moving an existing automatic link.
+
+For the account-management link, the same standard event displays it on the account page. A custom account template without that event can use:
+
+```php
+<?php
+if (class_exists('ProWebsBisn', false)
+    && ProWebsBisn::enabled()
+    && !empty($_SESSION['customer_id'])) {
+    ?>
+    <p>
+        <a href="<?= ProWebsBisn::h(zen_href_link(
+            FILENAME_ACCOUNT_BACK_IN_STOCK_NOTIFICATIONS,
+            '',
+            'SSL'
+        )) ?>">
+            <?= ProWebsBisn::h(BISN_ACCOUNT) ?>
+        </a>
+    </p>
+    <?php
+}
+?>
+```
+
+Do not restore the old CEON template includes or copy the obsolete BISN TO MERGE files into a version 4 installation.
 
 ## Scope and limits
 
