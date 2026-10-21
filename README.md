@@ -1,119 +1,137 @@
-# Zen Cart - Back in Stock Notifications
+# Back in stock notifications for Zen Cart
 
-## Functionality
-If a product is out of stock, customers can subscribe/request to receive a notification when that product becomes available again.
+Version 4.0.0, maintained by Melanie Prough, PRO-Webs, Inc., [PRO-Webs.net](https://pro-webs.net/).
+
+Customers can request an email when an unavailable product returns to stock. Store staff preview requests and send small batches from **Catalog > Back in stock notifications**.
 
 ## Compatibility
-Tested from Zen Cart 157 (earlier probably) to the current version 2.1, and with php8+.
 
-## Background
-This fileset is based on the original CEON version, not the forked ajax version. Neither are supported by the original developers.
+| Zen Cart | PHP |
+| --- | --- |
+| 2.1.0 | 8.0 through 8.3 |
+| 2.2.2 | 8.2 through 8.5 |
 
-I've been modifying it for years, multi-language (now included) and attributes handling being the most significant omissions from the original code.
+Zen Cart 2.0.0 and 2.0.1 are not supported. The installer enforces the two supported Zen Cart releases. Use an actively maintained PHP release within your Zen Cart version's supported range.
 
-As a result, this code is hugely different from the plugin version, so always test on a development server: DO NOT drop it into your production server without testing first.  
+## What version 4 changes
 
-Note that the original documentation in the docs folder has NOT been updated, so the file list is out of date.
+- Installs through Plugin Manager with one encapsulated version directory.
+- Adds product and account links through an existing Zen Cart template event. No core or template overwrites or template merges.
+- Replaces the CEON placeholder engine with ordinary PHP forms and Zen Cart mail.
+- Requires POST and a session form token for all subscription changes and admin actions.
+- Fixes the legacy account query that could expose or remove another customer's requests.
+- Uses random unsubscribe tokens and preserves existing unsubscribe links.
+- Adds persistent signup throttles, indexed queries, paged admin/account lists, bounded batches, a minimum five minute send interval, and a shared send lock.
+- Retains failed or skipped email requests for retry. A preview never sends mail.
+- Preserves legacy subscriptions and settings during migration and subscription records during uninstall.
 
-## Installation/Upgrade
-1. On your development server, remove any original BISN files that originated from the Zen cart Plugins.
-1. Copying all this fileset should not overwrite any other files: they are all new.  
-BUT, you should always use comparison software to check that is so, and to get an idea of what you are dumping into your shop. Trust no-one!  
-Regarding the template files, you will find template folders "bootstrap BISN TO MERGE" and "responsive_classic BISN TO MERGE" containing modified template files for you to compare and merge into your own equivalents.
-1. Go to the Admin Catalog->BISN Notifications Admin page to auto upgrade/install.
+See [installation and migration](docs/INSTALLATION.md), [usage and configuration](docs/USER_GUIDE.md), [technical notes](docs/TECHNICAL_NOTES.md), [audit findings](docs/AUDIT.md), and [change history](CHANGELOG.md).
 
-## Use/How it Works
-If necessary, you may restrict the use of the BISN service to only logged-in users to prevent spam from the BISN form, or you can try the ReCaptcha plugin  
-https://github.com/torvista/Zen_Cart-Google_reCAPTCHA
+## Installation
 
-On a product page, the BISN observer determines if the product is out of stock and adds the BISN link and form to the page.  
-The user fills in the form on the product info page (or if logged-in, their customer details are inserted automatically).  
-If the submitted form data has an error, a BISN subscribe page is shown, similar to Ask a Question.
-If the form data is valid, the BISN subscribe page is skipped, the subscription is recorded and a success message is shown.  
-The shop admin may receive a copy of the notification.
+Back up your files and database and test on a development copy first.
 
-When a product is back in stock, notification emails may be sent (manually) from the Admin BISN page.
+1. For an existing BISN installation, follow the legacy removal instructions before uploading.
+2. Upload the contents of **files/** to the store root.
+3. Open **Admin > Modules > Plugin Manager**, install and enable **Back in stock notifications 4.0.0**.
+4. Review **Configuration > Back in stock notifications**.
+5. Check the product page. If your custom template does not show the link, follow Product_info integration below.
+6. Test a product request, an account cancellation, a guest unsubscribe link, and a test email before sending a real batch.
 
-## Languages
-If you have a single language store, you should not see anything about languages.
+## Product_info integration
 
-For a multiple-language store, although the real (not test) notification emails will be sent in the same language as that used by the customer for the subscription, it requires manual intervention (is not automatic).
+### Standard automatic display
 
-This is done by selecting Option 4: this sends the emails in the language that matches the **currently-selected** admin-language.
-Then, changing the admin language will reload the Option 4 page and send the *other* emails that correspond to this other admin language etc.
+When your active template fires NOTIFY_PAGE_BODY_BEGIN, version 4 automatically displays a notification link above the product content for active products whose parent quantity is zero or below. No product_info edit is needed in that case.
 
-## Testing
-If you want to test the real sending of notifications repeatedly (and not delete the subscriptions):  
-in admin\back_in_stock_notifications.php  
-set this to false  
-$delete_customer_subscriptions = true;  
+Clicking the link opens the dedicated subscription page. Customers must submit that form, including when they are logged in. The old embedded form, legacy BISN variables, and plugin_bisn_product_info_subscribe_form.php include are no longer used.
 
-The BISN configuration allows an alternative email destination for the test emails to prevent cluttering up the business email account while testing.
+### Custom or Bootstrap template without the automatic link
 
-Optional copies of real Notification Subscription Emails are sent to what is defined in the BISN Admin (SEND_EXTRA_BACK_IN_STOCK_NOTIFICATION_SUBSCRIPTION_EMAILS_TO).
+If the notification link is missing, add the following to your active template's product display file:
 
-### Ceon XHTML template
-This plugin uses a unique (to CEON/Conor) method of building the forms and emails using templates and variable substitutions.  
-It's complicated to understand/modify, and something that at some point needs replacing by ZC core methods... feel free to have a go and contribute that.
+**includes/templates/YOUR_TEMPLATE/templates/tpl_product_info_display.php**
 
-## Problems/Ideas
-Any problems or suggestions: open an issue in GitHub, not in the forum.
+Replace YOUR_TEMPLATE with the active template folder, for example bootstrap. Edit the active override, not the plugin's page template. If your template has no override, copy its current inherited product display file into the active template's templates directory before editing.
 
-## Changelog
-For minor changes: see the commit history.
+Place this block after the product description or beside the stock information, outside the add-to-cart form. It includes its own PHP opening and closing tags, so paste it in the HTML portion of the template.
 
-22/09/2025: Bugfix for error on dedicated subscribe page when login required.
+```php
+<?php
+// BISN 4: use only when this template does not show the automatic BISN link.
+if (class_exists('ProWebsBisn', false) && ProWebsBisn::enabled()) {
+    $bisnProductId = (int)ProWebsBisn::scalar($_GET, 'products_id');
+    $bisnProduct = ProWebsBisn::product(
+        $bisnProductId,
+        (int)($_SESSION['languages_id'] ?? 1)
+    );
+    if ($bisnProduct && (float)$bisnProduct['products_quantity'] <= 0) {
+        $bisnUrl = zen_href_link(
+            FILENAME_BACK_IN_STOCK_NOTIFICATION_SUBSCRIBE,
+            'products_id=' . $bisnProductId,
+            'SSL'
+        );
+        ?>
+        <div class="bisn-notice">
+            <p>
+                <a class="btn btn-info" href="<?= ProWebsBisn::h($bisnUrl) ?>">
+                    <?= ProWebsBisn::h(BISN_REQUEST) ?>
+                </a>
+            </p>
+        </div>
+        <?php
+    }
+    unset($bisnProductId, $bisnProduct, $bisnUrl);
+}
+?>
+```
 
-26/02/2025: add check and install for db column languages_id. Drop old template files.  
+The guard allows this template code to remain when BISN is disabled or uninstalled. The product lookup verifies active status and stock before showing the link.
 
-16/08/2024: update and simplify template files
+**Use either the automatic link or this fallback.** Adding the fallback to a template that already displays the automatic link will display two links. This snippet is a missing-event fallback, not a switch for moving an existing automatic link.
 
-20/01/2023: added support for Google Recaptcha: https://github.com/torvista/Zen_Cart-Google_reCAPTCHA
+For the account-management link, the same standard event displays it on the account page. A custom account template without that event can use:
 
-18/11/2023 or thereabouts
-Add multi-language to email sending.
-A reply to the Admin copy of BISN subscription email now replies to customer
-Replace tabs with spaces with all files.
-Admin
-Option 1 list subscriptions by product
-Option 2 list all subscriptions 
-Bugfix: handle fatal error for a missing/deleted product
-Added column sorts/set column sort links to table id anchor
-Hide model column if not used.
-Add Delete buttons for each product/subscription.
-Corrected paging display text.
-Added support for Google reCaptcha.
-And lots more fun for all the family.
+```php
+<?php
+if (class_exists('ProWebsBisn', false)
+    && ProWebsBisn::enabled()
+    && !empty($_SESSION['customer_id'])) {
+    ?>
+    <p>
+        <a href="<?= ProWebsBisn::h(zen_href_link(
+            FILENAME_ACCOUNT_BACK_IN_STOCK_NOTIFICATIONS,
+            '',
+            'SSL'
+        )) ?>">
+            <?= ProWebsBisn::h(BISN_ACCOUNT) ?>
+        </a>
+    </p>
+    <?php
+}
+?>
+```
 
-11/11/2023: moved admin functions file so only loaded with BISN admin page
-Remove duplicated function zen_get_products_model from bis_functions.php
-Renamed BACK_IN_STOCK_NOTIFICATION_ENABLED to BACK_IN_STOCK_NOTIFICATIONS_ENABLED
-Minor changes to installer messages and processing.
-Add delete of single subscriptions of a product
+Do not restore the old CEON template includes or copy the obsolete BISN TO MERGE files into a version 4 installation.
 
-06/11/2023: relocated required/optional template files to main file structure.
-Updated template files based on ZC158 responsive_classic.
+## Scope and limits
 
-23/07/23:
-Use ZC158 admin header, moved CSS to a separate file.
+Notification sending is manual. No cron job is required or included, and browsing the storefront never starts an email batch. Send the next batch from the admin page after the cooldown.
 
-16/02/22:
-Bugfix for duplicated subscription links when no login required.
+Availability is based on the parent product quantity and active status. Attribute inventory systems such as SBA and POSM are not supported. A notification does not reserve inventory.
 
-Removed: /modules/ceon_form_bis as functionality duplicated in observer class
+Requests retain the language used when subscribing. Select that language in the admin to preview and send those requests. English is included; additional languages require translations of the supplied language arrays.
 
-Removed: unnecessary observer auto loaders/observers made auto-loading 
+Version 4 uses a separate subscription form page instead of embedding a second form inside a product template. It does not send signup acknowledgments or admin copy emails. The old copy-address setting is retained for migration reference. Test delivery is an explicit admin action.
 
-Bugfix for missing product_model in account BISN listing
+Templates must fire the standard **NOTIFY_PAGE_BODY_BEGIN** event. The event exists in the supported Zen Cart responsive_classic templates. Verify custom and Bootstrap templates on your development store.
 
-Bugfix for missing image in account BISN listing, Update button
+## License, credits, and support
 
-Modified: language defines
+The repository retains its GNU GPL version 3 license. See [LICENSE](LICENSE). Credits: original CEON Back In Stock Notifications by Conor Kerr, subsequent contributions by Tony Niemann and RubikIntegration, and extensive maintenance by torvista. The inherited source contains historical GPL version 2 notices; these credits and the upstream history remain available in git.
 
-Removed: modified core file functions_general
+This free distribution is provided without warranty. Installation, configuration, customization, and third party template work are not included.
 
-Removed: empty language folders
+Report bugs and security concerns privately through the [PRO-Webs helpdesk](https://prowebsinc.zohodesk.com/portal/en/newticket). Include Zen Cart/PHP versions and a redacted error log. Do not send customer addresses, live unsubscribe links, credentials, or database dumps in public issues.
 
-Fixes for warnings in strict mode/php8 compatibility
-
-Miscellaneous IDE recommendations, strict comparisons, short-array syntax
+[Source repository](https://github.com/mprough/Zen_Cart-BISN). No Zen Cart plugin directory ID has been assigned to this maintained package; the manifest uses 0.
